@@ -1,0 +1,2 @@
+source /home/andrew/Documents/weather_station/build/gdbinit/symbols
+source /home/andrew/Documents/weather_station/build/gdbinit/connect
