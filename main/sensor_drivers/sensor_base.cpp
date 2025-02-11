@@ -1,8 +1,7 @@
 #include "sensor_base.hpp"
-#include "sensor_supervisor.hpp"
-#include  "esp_log.h"
+#include "esp_log.h"
 
-const char *TAG = "Sensor";
+const char* TAG = "Sensor";
 
 SensorBase(std::string name, Sensor::Type type, uint32_t interval)
 {
@@ -14,9 +13,9 @@ SensorBase(std::string name, Sensor::Type type, uint32_t interval)
     std::thread = std::thread(&SensorBase::main_sensor_task, this);
 }
 
-void SensorBase::main_sensor_task(void *params)
+void SensorBase::main_sensor_task(void* params)
 {
-    SensorBase *sensor = (SensorBase *)params;
+    SensorBase* sensor = (SensorBase*)params;
     {
         std::lock_guard<std::mutex> lock(Sensor::sensor_queue_mutex);
         ESP_LOGI(TAG, "%s is requesting registration", sensor->sensor_config.name.c_str());
