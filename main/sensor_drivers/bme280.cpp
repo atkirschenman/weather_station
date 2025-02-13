@@ -35,11 +35,12 @@ void BME280::sensor_function()
     float temp[3] = {0};
     float hum[3] = {0};
     float press[3] = {0};
+    int i = 0;
     // Read sensor data
-    while (Sensor.get_sensor_by_name(sensor_config.name).state != Sensor.State::READY_TO_SLEEP)
+    while (Sensor.get_sensor_by_name(sensor_config.name).state != Sensor.State::SHUTTING_DOWN)
     {
         bool stable = true;
-
+        // Check if the sensor data is stable
         if (temp[0] != temp[1] || temp[0] != temp[2])
         {
             stable = false;
@@ -53,16 +54,23 @@ void BME280::sensor_function()
             stable = false;
         }
 
+        // If the sensor data is stable, change the state
         if (stable)
         {
             change_state(Sensor::State::READING_STABLE);
         }
+
         // Read sensor data
-        bme280spi.GetAllResults(&temp[i], &hum[i], &press[i]);
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        bme280spi.GetAllResults(&temp[i % 3], &hum[i % 3], &press[i % 3]);
+        i++;
+        std::this_thread::sleep_for(std::chrono::milliseconds(50));
     }
 
-    // Update the sensor state
+    // shutdown sensor
+    bme280spi.Shutdown();
+
+    // Change the state to ready to sleep
+    change_state(Sensor::State::READY_TO_SLEEP);
 
     // Sleep for the interval
 }
