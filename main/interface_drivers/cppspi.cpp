@@ -1,4 +1,4 @@
-#include "CPPSPI/cppspi.h"
+#include "cppspi.hpp"
 
 namespace CPPSPI
 {

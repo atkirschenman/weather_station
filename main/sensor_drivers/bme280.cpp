@@ -1,6 +1,6 @@
 #include "bme280.hpp"
-#include "CPPSPI/cppspi.h"
-#include "bme280_spi/bme280_spi.h"
+#include "bme280_driver.hpp"
+#include "cppspi.hpp"
 #include "esp_log.h"
 
 static const char* TAG = "BME280";
@@ -10,9 +10,9 @@ constexpr static int SPI_3_MOSI = 23;
 constexpr static int SPI_3_SCLK = 18;
 constexpr static int BME280_SS_PIN = 5;
 
-BME280::BME280(std::string name, Sensor::Type type, uint32_t interval)
-    : SensorBase(name, type, interval)
+BME280::BME280(std::string name, uint32_t interval) : SensorBase(name, interval)
 {
+    this->name = name;
 }
 
 BME280::~BME280()
@@ -31,13 +31,14 @@ void BME280::sensor_function()
     bme280spi.SetMode(1);
     bme280spi.SetConfigFilter(1);
 
-    change_state(Sensor::State::READING_UNSTABLE);
+    change_state(SensorDefines::State::READING_UNSTABLE);
     float temp[3] = {0};
     float hum[3] = {0};
     float press[3] = {0};
+    CPPBME280::BME280SPI::BME280ResultData results;
     int i = 0;
     // Read sensor data
-    while (Sensor.get_sensor_by_name(sensor_config.name).state != Sensor.State::SHUTTING_DOWN)
+    while (Sensor.get_sensor_by_name(name).state != SensorDefines::State::SHUTTING_DOWN)
     {
         bool stable = true;
         // Check if the sensor data is stable
@@ -57,20 +58,23 @@ void BME280::sensor_function()
         // If the sensor data is stable, change the state
         if (stable)
         {
-            change_state(Sensor::State::READING_STABLE);
+            change_state(SensorDefines::State::READING_STABLE);
         }
 
         // Read sensor data
-        bme280spi.GetAllResults(&temp[i % 3], &hum[i % 3], &press[i % 3]);
+        bme280spi.GetAllResults(&results);
+        temp[i % 3] = results.temperature;
+        hum[i % 3] = results.humididty;
+        press[i % 3] = results.pressure;
         i++;
         std::this_thread::sleep_for(std::chrono::milliseconds(50));
     }
 
     // shutdown sensor
-    bme280spi.Shutdown();
+    // bme280spi.Shutdown();
 
     // Change the state to ready to sleep
-    change_state(Sensor::State::READY_TO_SLEEP);
+    change_state(SensorDefines::State::READY_TO_SLEEP);
 
     // Sleep for the interval
 }

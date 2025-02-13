@@ -1,4 +1,4 @@
-#include "bme280_spi/bme280_spi.h"
+#include "bme280_driver.hpp"
 
 namespace CPPBME280
 {

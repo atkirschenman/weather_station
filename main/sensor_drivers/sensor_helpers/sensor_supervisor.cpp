@@ -2,11 +2,11 @@
 #include "esp_log.h"
 #include "sensor_defines.hpp"
 
-const char* TAG = "SensorSupervisor";
+static const char* TAG = "SensorSupervisor";
 
 SensorSupervisor::SensorSupervisor()
 {
-    sensor_thread = std::thread(&SensorSupervisor::registerSensor, this);
+    ESP_LOGI(TAG, "Sensor Supervisor Started");
 }
 
 SensorSupervisor::~SensorSupervisor()

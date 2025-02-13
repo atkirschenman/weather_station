@@ -1,10 +1,15 @@
-idf_component_register(SRCS "weather_station.cpp"
-                    INCLUDE_DIRS ".")
-
-add_subdirectory(interface_drivers)
-add_subdirectory(sensor_drivers)
-
-add_executable(my_executable main.cpp)
-
-# Link interface_drivers and sensor_drivers to main
-target_link_libraries(my_executable PRIVATE interface_drivers sensor_drivers)
+idf_component_register(SRCS 
+"weather_station.cpp"
+"sensor_drivers/bme280.cpp"
+"sensor_drivers/bme280/bme280_driver.cpp"
+"sensor_drivers/bme280/bme280_common.cpp"
+"sensor_drivers/sensor_helpers/sensor_base.cpp"
+"sensor_drivers/sensor_helpers/sensor_defines.cpp"
+"sensor_drivers/sensor_helpers/sensor_supervisor.cpp"
+"interface_drivers/cppspi.cpp"
+INCLUDE_DIRS 
+"."
+"sensor_drivers"
+"sensor_drivers/bme280"
+"sensor_drivers/sensor_helpers"
+"interface_drivers")

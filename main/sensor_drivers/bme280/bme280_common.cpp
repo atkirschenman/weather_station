@@ -1,5 +1,5 @@
 
-#include "bme280_common/bme280_common.h"
+#include "bme280_common.hpp"
 #include <memory>
 
 namespace CPPBME280

@@ -15,7 +15,7 @@ static const char* TAG = "FreeRTOS_Main";
 
 void example_task(void* pvParameter)
 {
-    BME280 bme280("BME280", SensorDefines::Type::TEMPERATURE, 15000);
+    BME280 bme280("BME280", 15000);
     while (1)
     {
         ESP_LOGI(TAG, "Task running...");

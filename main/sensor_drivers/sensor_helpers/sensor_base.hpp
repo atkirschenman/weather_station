@@ -1,4 +1,7 @@
 #pragma once
+#include <esp_pthread.h>
+#include <freertos/FreeRTOS.h>
+#include <freertos/task.h>
 #include <string>
 #include <thread>
 #include "sensor_defines.hpp"
@@ -7,7 +10,7 @@ class SensorBase
 {
 
   public:
-    SensorBase(std::string name, SensorDefines::Type type, uint32_t interval);
+    SensorBase(std::string name, uint32_t interval);
 
   protected:
     virtual void sensor_function() = 0;
@@ -17,5 +20,5 @@ class SensorBase
     uint32_t sensor_key;
     void main_sensor_task(void* params);
     std::thread sensor_thread;
-    SensorDefines::Type sensor_type;
+    SensorDefines::Config sensor_config;
 };

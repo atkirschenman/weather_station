@@ -17,6 +17,7 @@ class SensorDefines
         READING_UNSTABLE,
         READING_STABLE,
         READING_ERROR,
+        READY_TO_SLEEP,
         SHUTTING_DOWN,
     };
 
@@ -27,10 +28,10 @@ class SensorDefines
         uint32_t interval;
     };
 
-    bool sendSensorData(std::string& name, float data);
-    float getSensorData(std::string& name);
+    bool send_sensor_data(std::string& name, float data);
+    float get_sensor_data(std::string& name);
 
-    bool registerSensor(Config sensor);
+    uint32_t register_sensor(Config sensor);
     Config get_sensor_by_name(std::string& name);
     Config get_sensor_by_reading(std::string& reading);
     bool change_state(uint32_t key, State state);
@@ -42,13 +43,13 @@ class SensorDefines
     /// @brief Mutex for sensor supervisor
     std::mutex data_mutex;
     /// @brief List of data readings
-    std::unordered_map<std::string, std::pair<Config, float>> data;
+    std::unordered_map<std::string, std::pair<Config, float>> data_map;
     /// @brief Mutex for sensor supervisor
     std::mutex sensors_mutex;
     /// @brief List of sensors
-    std::unordered_map<std::string, std::shared_ptr<SensorDefines::Config>> sensors;
+    std::unordered_map<std::string, Config> sensors_map;
 
-    std::unordered_map<std::string, uint32_t> sensor_keys;
+    std::unordered_map<uint32_t, std::string> sensor_keys_map;
     std::mutex keys_mutex;
 
     std::condition_variable cv;

@@ -2,8 +2,8 @@
 /// https://github.com/roughleaf/ESP-IDF-CPP-Components/blob/main/bme280_spi/include/bme280_spi/bme280_spi.h
 #pragma once
 
-#include "CPPSPI/cppspi.h"
-#include "bme280_common/bme280_common.h"
+#include "bme280_common.hpp"
+#include "cppspi.hpp"
 
 namespace CPPBME280
 {
