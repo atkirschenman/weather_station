@@ -1,124 +1,86 @@
 #include "wind_speed.hpp"
-#include <Arduino.h>
-#include <FreeRTOS.h>
-#include <queue.h>
+#include <chrono>
+#include <mutex>
+#include <queue>
 
+#ifdef ARDUINO
 QueueHandle_t queue; // Queue to store the time of the interrupts
+#else
+std::queue<unsigned long> queue;
+std::mutex queue_mutex;
+#endif
 
 WindSpeed::WindSpeed(uint8_t pin) : sensorPin(pin)
 {
-    queue = xQueueCreate(1, sizeof(unsigned long));
 }
 
 void WindSpeed::begin()
 {
+#ifdef ARDUINO
+    queue = xQueueCreate(1, sizeof(unsigned long));
     pinMode(sensorPin, INPUT_PULLUP);
     attachInterrupt(digitalPinToInterrupt(sensorPin), handleInterrupt, FALLING);
-    lastTime = millis();
+#endif
 }
-float WindSpeed::getWindSpeed()
+
+float WindSpeed::get_wind_speed()
 {
-    unsigned long currentTime;
-    xQueueReceive(queue, &currentTime, portMAX_DELAY);
-    float windSpeed = 1000.0 / (currentTime - lastTime);
-    lastTime = currentTime;
-    return windSpeed;
+    return get_rpm_from_queue();
 }
+
+void WindSpeed::mock_handle_interupt(unsigned long time)
+{
+    send_to_queue(time);
+}
+
+uint32_t WindSpeed::get_millis()
+{
 #ifdef ARDUINO
-void IRAM_ATTR WindSpeed::handleInterrupt()
-{
-    xQueueSendFromISR(queue, &millis(), NULL);
-}
+    return millis();
 #else
-void WindSpeed::mock_handle_interrupt(unsigned long time)
+    auto now = std::chrono::steady_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch());
+    return duration.count();
+#endif
+}
+
+float WindSpeed::get_rpm_from_queue()
 {
-    xQueueSendFromISR(queue, &time, NULL);
+    uint32_t queue_out = 0;
+#ifdef ARDUINO
+    auto size = uxQueueMessagesWaiting(queue);
+    for (int i = 0; i <= size; i++)
+    {
+        auto temp = 0;
+        xQueueReceive(queue, &temp, 0);
+        queue_out += temp;
+    }
+#else
+    auto size = queue.size();
+    std::lock_guard<std::mutex> lock(queue_mutex);
+    for (int i = 0; i <= size; i++)
+    {
+        queue_out += queue.front();
+        queue.pop();
+    }
+#endif
+
+    return (static_cast<float>(size) / static_cast<float>(queue_out)) * 60000.0;
+}
+
+void WindSpeed::send_to_queue(uint32_t num)
+{
+#ifdef ARDUINO
+    xQueueSendFromISR(queue, &num, NULL);
+#else
+    std::lock_guard<std::mutex> lock(queue_mutex);
+    queue.push(num);
+#endif
+}
+
+#ifdef ARDUINO
+void IRAM_ATTR WindSpeed::handle_interrupt()
+{
+    send_to_queue(get_millis());
 }
 #endif
-// Compare this snippet from test/test_wind_speed/test_wind_speed.cpp:
-
-// #include "wind_speed.hpp"
-
-// void test_wind_speed_initialization()
-
-// {
-
-//     WindSpeed sensor(2);
-
-//     TEST_ASSERT_EQUAL(2, sensor.get_pin());
-
-// }
-
-// void test_wind_speed_sensor_function()
-
-// {
-
-//     WindSpeed sensor(2);
-
-//     sensor.begin();
-
-//     // Assuming we have some way to mock or check the sensor data
-
-//     // For example, we could check if the wind speed is greater than 0
-
-//     TEST_ASSERT_GREATER_THAN(0, sensor.getWindSpeed());
-
-// }
-
-// void test_wind_speed_handle_interrupt()
-
-// {
-
-//     WindSpeed sensor(2);
-
-//     sensor.begin();
-
-//     // Mocking the interrupt
-
-//     sensor.handleInterrupt();
-
-//     TEST_ASSERT_EQUAL(1, sensor.get_rotation_count());
-
-// }
-
-// void test_wind_speed_get_wind_speed()
-
-// {
-
-//     WindSpeed sensor(2);
-
-//     sensor.begin();
-
-//     // Mocking the interrupt
-
-//     sensor.handleInterrupt();
-
-//     // Assuming the wind speed is 10 m/s
-
-//     TEST_ASSERT_EQUAL(10.0, sensor.getWindSpeed());
-
-// }
-
-// #ifdef ARDUINO
-
-// void setup()
-
-// {
-
-//     UNITY_BEGIN();
-
-//     RUN_TEST(test_add_function);
-
-//     RUN_TEST(test_isEven_function);
-
-//     RUN_TEST(test_wind_speed_initialization);
-
-//     RUN_TEST(test_wind_speed_sensor_function);
-
-//     RUN_TEST(test_wind_speed_handle_interrupt);
-
-//     RUN_TEST(test_wind_speed_get_wind_speed);
-
-//     UNITY_END();
-
-// }

@@ -1,34 +1,42 @@
+#ifdef ARDUINO
 #include <Arduino.h>
-#include <chrono>
 #include <esp_pthread.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
+#include "esp_log.h"
+#else
+
+#endif
+#include <chrono>
 #include <iostream>
 #include <memory>
 #include <sstream>
 #include <string>
 #include <thread>
-#include "esp_log.h"
 
 static const char* TAG = "FreeRTOS_Main";
+std::thread main_thread;
 
-void example_task(void* pvParameter)
+void example_task(void* parameter)
 {
     while (1)
     {
-        ESP_LOGI(TAG, "Task running...");
-        vTaskDelay(pdMS_TO_TICKS(1000)); // Delay for 1000ms
+        std::cout << "task running" << std::endl;
+        std::this_thread::sleep_for(std::chrono::seconds(1)); // Delay for 1 second
     }
 }
 
 void setup()
 {
     // put your setup code here, to run once:
-    xTaskCreate(example_task, "example_task", 2048, NULL, 1, NULL);
+    main_thread = std::thread(example_task, nullptr);
 }
 
 void loop()
 {
     // put your main code here, to run repeatedly:
-    vTaskDelete(NULL);
+    if (main_thread.joinable())
+    {
+        main_thread.join();
+    }
 }
