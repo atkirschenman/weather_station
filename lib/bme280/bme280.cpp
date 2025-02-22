@@ -7,11 +7,12 @@
 #include <string>
 #include "Arduino.h"
 
+#include "esp_log.h"
+
 #define BME_SCK 13
 #define BME_MISO 12
 #define BME_MOSI 11
 #define BME_CS 10
-#include "esp_log.h"
 #define SEALEVELPRESSURE_HPA (1013.25)
 
 Adafruit_BME280 bme; // I2C
@@ -21,7 +22,7 @@ std::string temperature_str = "temperature";
 std::string humidity_str = "dew_point";
 std::string pressure_str = "pressure";
 
-BME280::BME280(std::string name, uint32_t interval) : SensorBase(name, interval)
+BME280::BME280(uint32_t interval) : SensorBase(TAG, interval)
 {
     this->name = name;
 }
@@ -56,7 +57,6 @@ void BME280::sensor_function()
     }
 
     bme.setSampling(Adafruit_BME280::MODE_SLEEP);
-    // Change the state to ready to sleep
-    change_state(SensorDefines::State::READY_TO_SLEEP);
-}
 
+    // exiting the sensor function will change state to sleep
+}

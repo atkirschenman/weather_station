@@ -30,6 +30,9 @@ void SensorBase::main_sensor_task(void* params)
     }
 
     sensor->sensor_function();
+
+    // Change the state to ready to sleep
+    change_state(SensorDefines::State::READY_TO_SLEEP);
 }
 
 void SensorBase::change_state(SensorDefines::State state)
